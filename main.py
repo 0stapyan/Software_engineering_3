@@ -1,5 +1,6 @@
 import requests
 from datetime import datetime
+from datetime import timedelta
 
 def fetch_user_data(offset):
     api_url = f'https://sef.podkolzin.consulting/api/users/lastSeen?offset={offset}'
@@ -46,7 +47,10 @@ def get_user_by_id(user_data, user_id):
 
 
 def datetime_from_iso(iso_date_str):
-    return datetime.strptime(iso_date_str.split('.')[0], "%Y-%m-%dT%H:%M:%S")
+    if iso_date_str:
+        return datetime.strptime(iso_date_str.split('.')[0], "%Y-%m-%dT%H:%M:%S")
+    return None
+
 
 
 def users_online_at_date(users_data, user_id, date):
@@ -98,9 +102,36 @@ def find_nearest_online_time(users_data, user_id, date):
 
     return (None, None)
 
+def predict_users_online(user_data, future_date_str):
+
+    future_date = datetime.strptime(future_date_str, "%Y-%m-%d %H:%M")
+    day = future_date.strftime('%A')
+    time = future_date.strftime('%H:%M')
+
+    matching_data = [user for user in user_data if
+                 user.get('lastSeenDate') and
+                 datetime_from_iso(user.get('lastSeenDate')).strftime('%A') == day and
+                 datetime_from_iso(user.get('lastSeenDate')).strftime('%H:%M') == time]
+
+
+    if not matching_data:
+        return {"online_users" : 0}
+
+    total_online_users =0
+
+    for user in matching_data:
+        users_online = user.get('usersOnline', 0)
+        total_online_users += users_online
+
+    average_users_online = total_online_users / len(matching_data)
+
+    return {"online_users" : round(average_users_online)}
+
 
 date_str = '2023-09-27 20:00'
 user_id = 'A4DC2287-B03D-430C-92E8-02216D828709'
+future_date_str = '2025-09-27 20:00'
+
 
 user_data = fetch_user_data(0)
 date = datetime.strptime(date_str, "%Y-%m-%d %H:%M")
@@ -122,5 +153,9 @@ elif was_user_online is False:
         print(f"User {user_id} has no other online records.")
 else:
     print(f"User {user_id} wasn't found :(")
+
+prediction = predict_users_online(user_data, future_date_str)
+
+print(f"Predicted online users at {future_date_str}: {prediction['online_users']}")
 
 
