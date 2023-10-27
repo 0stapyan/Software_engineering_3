@@ -128,9 +128,34 @@ def predict_users_online(user_data, future_date_str):
     return {"online_users" : round(average_users_online)}
 
 
+def predict_user_online(user_data, future_date_str, user_id, tolerance):
+
+    future_date = datetime.strptime(future_date_str, "%Y-%m-%d %H:%M")
+    day = future_date.strftime('%A')
+    time = future_date.strftime('%H:%M')
+
+    matching_data = [user for user in user_data if
+                     user.get('lastSeenDate') and
+                     datetime_from_iso(user.get('lastSeenDate')).strftime('%A') == day and
+                     datetime_from_iso(user.get('lastSeenDate')).strftime('%H:%M') == time]
+
+    total_online_weeks = len(set(user.get('lastSeenDate').split('T')[0] for user in user_data if user.get('lastSeenDate')))
+
+
+    if total_online_weeks > 0:
+        online_chance = len(matching_data) / total_online_weeks
+    else:
+        online_chance = 0
+
+    will_be_online = online_chance >= tolerance
+
+    return {"willBeOnline": will_be_online, "onlineChance": round(online_chance, 2)}
+
+
 date_str = '2023-09-27 20:00'
 user_id = 'A4DC2287-B03D-430C-92E8-02216D828709'
 future_date_str = '2025-09-27 20:00'
+tolerance = 0.85
 
 
 user_data = fetch_user_data(0)
@@ -154,8 +179,13 @@ elif was_user_online is False:
 else:
     print(f"User {user_id} wasn't found :(")
 
-prediction = predict_users_online(user_data, future_date_str)
+prediction1 = predict_users_online(user_data, future_date_str)
+prediction2 = predict_user_online(user_data, future_date_str, user_id, tolerance)
 
-print(f"Predicted online users at {future_date_str}: {prediction['online_users']}")
+print(f"Predicted online users at {future_date_str}: {prediction1['online_users']}")
+
+print(f"Predicted user online at {future_date_str}: {prediction2['willBeOnline']}")
+print(f"Predicted online users at {future_date_str}: {prediction2['onlineChance']}")
+
 
 
