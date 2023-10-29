@@ -35,9 +35,13 @@ def historical_data_for_all_users(date_str):
 
     total_users = len(users_data)
 
-    print(f"Users Online at {date}: {len(historical_data)}")
-    print(f"Total Users: {total_users}")
+    # Return the historical_data and total_users as a dictionary
+    result = {
+        "historical_data": historical_data,
+        "total_users": total_users
+    }
 
+    return result
 
 def get_user_by_id(user_data, user_id):
     for user in user_data:
