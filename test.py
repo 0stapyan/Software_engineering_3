@@ -60,6 +60,129 @@ class TestIntegration(unittest.TestCase):
 
         self.assertEqual(result, expected_result)
 
+    def test_get_user_by_id_found(self):
+        user_data = [
+            {
+                'userId': 'user1',
+                'name': 'User One',
+                'email': 'user1@example.com',
+            },
+            {
+                'userId': 'user2',
+                'name': 'User Two',
+                'email': 'user2@example.com',
+            },
+        ]
+
+        user_id_to_find = 'user1'
+
+        found_user = get_user_by_id(user_data, user_id_to_find)
+
+
+        self.assertEqual(found_user, user_data[0])
+
+    def test_get_user_by_id_not_found(self):
+
+        user_data = [
+            {
+                'userId': 'user1',
+                'name': 'User One',
+                'email': 'user1@example.com',
+            },
+            {
+                'userId': 'user2',
+                'name': 'User Two',
+                'email': 'user2@example.com',
+            },
+        ]
+
+        user_id_to_find = 'user3'
+
+        found_user = get_user_by_id(user_data, user_id_to_find)
+
+        self.assertIsNone(found_user)
+
+    def test_users_online_at_date(self):
+        user_data = [
+            {
+                'userId': 'user1',
+                'lastSeenDate': '2023-10-27T12:00:00.000',
+            },
+            {
+                'userId': 'user2',
+                'lastSeenDate': '2023-10-26T12:00:00.000',
+            },
+            {
+                'userId': 'user3',
+                'lastSeenDate': '2023-10-27T14:00:00.000',
+            },
+        ]
+
+        date_to_check = datetime_from_iso('2023-10-27T13:00:00.000')
+
+        online_users = users_online_at_date(user_data, 'user1', date_to_check)
+
+        expected_result = [
+            {
+                'user_id': 'user1',
+                'last_seen_date': datetime_from_iso('2023-10-27T12:00:00.000')
+            },
+            {
+                'user_id': 'user3',
+                'last_seen_date': datetime_from_iso('2023-10-27T14:00:00.000')
+            }
+        ]
+
+        self.assertEqual(online_users, expected_result)
+
+    def test_find_nearest_online_time_user_not_online(self):
+        user_data = [
+            {
+                'userId': 'user1',
+                'lastSeenDate': '2023-10-27T12:00:00.000',
+            },
+            {
+                'userId': 'user2',
+                'lastSeenDate': '2023-10-26T12:00:00.000',
+            },
+            {
+                'userId': 'user3',
+                'lastSeenDate': '2023-10-27T14:00:00.000',
+            },
+        ]
+
+        user_id = 'user2'
+        date_to_check = datetime_from_iso('2023-10-27T13:00:00.000')
+
+        result, nearest_time = find_nearest_online_time(user_data, user_id, date_to_check)
+
+        self.assertFalse(result)
+        self.assertEqual(nearest_time, datetime_from_iso('2023-10-27T12:00:00.000'))
+
+    def test_find_nearest_online_time_user_not_found(self):
+        user_data = [
+            {
+                'userId': 'user1',
+                'lastSeenDate': '2023-10-27T12:00:00.000',
+            },
+            {
+                'userId': 'user2',
+                'lastSeenDate': '2023-10-26T12:00:00.000',
+            },
+            {
+                'userId': 'user3',
+                'lastSeenDate': '2023-10-27T14:00:00.000',
+            },
+        ]
+
+        user_id = 'user4'
+        date_to_check = datetime_from_iso('2023-10-27T13:00:00.000')
+
+        result, nearest_time = find_nearest_online_time(user_data, user_id, date_to_check)
+
+        self.assertIsNone(result)
+        self.assertIsNone(nearest_time)
+
 
 if __name__ == '__main__':
     unittest.main()
