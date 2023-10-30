@@ -154,42 +154,43 @@ def predict_user_online(user_data, future_date_str, user_id, tolerance):
     will_be_online = online_chance >= tolerance
 
     return {"willBeOnline": will_be_online, "onlineChance": round(online_chance, 2)}
+def main():
+    date_str = input("Enter the date and time (YYYY-MM-DD HH:MM): ")
+    user_id = input("Enter the user ID: ")
+    future_date_str = input("Enter the future date and time (YYYY-MM-DD HH:MM): ")
+    tolerance = float(input("Enter the tolerance (0-1): "))
 
+    user_data = fetch_user_data(0)
+    date = datetime.strptime(date_str, "%Y-%m-%d %H:%M")
 
-date_str = '2023-09-27 20:00'
-user_id = 'A4DC2287-B03D-430C-92E8-02216D828709'
-future_date_str = '2025-09-27 20:00'
-tolerance = 0.85
+    online_users = users_online_at_date(user_data, user_id, date)
 
+    print(f"Users Online at {date_str}: {len(online_users)}")
+    print(f"Total Users: {len(user_data)}")
 
-user_data = fetch_user_data(0)
-date = datetime.strptime(date_str, "%Y-%m-%d %H:%M")
+    was_user_online, nearest_online_time = find_nearest_online_time(user_data, user_id, date)
 
-online_users = users_online_at_date(user_data, user_id, date)
-
-print(f"Users Online at {date_str}: {len(online_users)}")
-print(f"Total Users: {len(user_data)}")
-
-was_user_online, nearest_online_time = find_nearest_online_time(user_data, user_id, date)
-
-if was_user_online is True:
-    print(f"User {user_id} was online at {date}: True")
-elif was_user_online is False:
-    print(f"User {user_id} was online at {date}: False")
-    if nearest_online_time:
-        print(f"Nearest online time for user {user_id}: {nearest_online_time.strftime('%Y-%m-%d %H:%M')}")
+    if was_user_online is True:
+        print(f"User {user_id} was online at {date}: True")
+    elif was_user_online is False:
+        print(f"User {user_id} was online at {date}: False")
+        if nearest_online_time:
+            print(f"Nearest online time for user {user_id}: {nearest_online_time.strftime('%Y-%m-%d %H:%M')}")
+        else:
+            print(f"User {user_id} has no other online records.")
     else:
-        print(f"User {user_id} has no other online records.")
-else:
-    print(f"User {user_id} wasn't found :(")
+        print(f"User {user_id} wasn't found :(")
 
-prediction1 = predict_users_online(user_data, future_date_str)
-prediction2 = predict_user_online(user_data, future_date_str, user_id, tolerance)
+    prediction1 = predict_users_online(user_data, future_date_str)
+    prediction2 = predict_user_online(user_data, future_date_str, user_id, tolerance)
 
-print(f"Predicted online users at {future_date_str}: {prediction1['online_users']}")
+    print(f"Predicted online users at {future_date_str}: {prediction1['online_users']}")
 
-print(f"Predicted user online at {future_date_str}: {prediction2['willBeOnline']}")
-print(f"Predicted online users at {future_date_str}: {prediction2['onlineChance']}")
+    print(f"Predicted user online at {future_date_str}: {prediction2['willBeOnline']}")
+    print(f"Predicted online users at {future_date_str}: {prediction2['onlineChance']}")
 
+
+
+main()
 
 
